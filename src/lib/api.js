@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://www.thesportsdb.com/api/v1/json/3';
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /**
  * Cari pemain sepak bola berdasarkan nama.
