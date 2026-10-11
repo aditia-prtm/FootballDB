@@ -49,9 +49,6 @@ export function CustomPlayerModal({ isOpen, onClose }) {
         {/* Modal Header */}
         <div className="p-5 border-b border-[#1a1a1a] flex items-center justify-between bg-[#0a0a0a]">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-yellow-400">
-              <Plus size={18} />
-            </div>
             <div>
               <h2 className="font-title text-base font-bold text-white">
                 Tambah Pemain Favorit
