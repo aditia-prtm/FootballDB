@@ -1,65 +1,46 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { X, Plus, ImageIcon, AlertCircle } from 'lucide-react';
-import { useFavorites } from '../../context/FavoritesContext';
+import { useCustomPlayerForm } from '../../hooks/useCustomPlayerForm';
 
 export function CustomPlayerModal({ isOpen, onClose }) {
-  const { addCustomPlayer } = useFavorites();
-
-  const [formData, setFormData] = useState({
-    strPlayer: '',
-    strTeam: '',
-    strPosition: 'Forward',
-    strNationality: '',
-    strNumber: '',
-    dateBorn: '',
-    strThumb: '',
-    strDescriptionEN: '',
+  // Menggunakan React Hook Form + Zod Validation via custom hook
+  const {
+    register,
+    handleSubmit,
+    errors,
+    isSubmitting,
+    resetForm,
+    setFocus,
+    strThumbValue,
+    imageError,
+    setImageError,
+  } = useCustomPlayerForm(() => {
+    onClose();
   });
 
-  const [error, setError] = useState('');
-  const [imageError, setImageError] = useState(false);
+  // Auto-focus ke input nama pemain saat modal dibuka
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        setFocus('strPlayer');
+      }, 50);
+      return () => clearTimeout(timer);
+    } else {
+      resetForm();
+    }
+  }, [isOpen, setFocus, resetForm]);
 
   if (!isOpen) return null;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === 'strThumb') {
-      setImageError(false);
-    }
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.strPlayer.trim()) {
-      setError('Nama pemain wajib diisi.');
-      return;
-    }
-    if (!formData.strTeam.trim()) {
-      setError('Nama klub / tim wajib diisi.');
-      return;
-    }
-
-    addCustomPlayer(formData);
-    setFormData({
-      strPlayer: '',
-      strTeam: '',
-      strPosition: 'Forward',
-      strNationality: '',
-      strNumber: '',
-      dateBorn: '',
-      strThumb: '',
-      strDescriptionEN: '',
-    });
-    setError('');
-    setImageError(false);
+  const handleClose = () => {
+    resetForm();
     onClose();
   };
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="relative w-full max-w-lg bg-[#151515] border border-[#1a1a1a] rounded-2xl shadow-2xl flex flex-col overflow-hidden text-gray-100"
@@ -76,14 +57,15 @@ export function CustomPlayerModal({ isOpen, onClose }) {
                 Tambah Pemain Favorit
               </h2>
               <p className="text-xs text-gray-400">
-                Buat profil pemain kustom untuk disimpan ke koleksimu
+                Profil pemain kustom tervalidasi dengan React Hook Form + Zod
               </p>
             </div>
           </div>
 
           <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-[#151515] text-gray-400 hover:text-white hover:bg-[#151515] flex items-center justify-center transition-colors cursor-pointer"
+            type="button"
+            onClick={handleClose}
+            className="w-8 h-8 rounded-lg bg-[#151515] text-gray-400 hover:text-white hover:bg-[#1a1a1a] flex items-center justify-center transition-colors cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -91,12 +73,6 @@ export function CustomPlayerModal({ isOpen, onClose }) {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-          {error && (
-            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs text-rose-300">
-              {error}
-            </div>
-          )}
-
           {/* Nama Pemain & Klub */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -105,13 +81,20 @@ export function CustomPlayerModal({ isOpen, onClose }) {
               </label>
               <input
                 type="text"
-                name="strPlayer"
-                value={formData.strPlayer}
-                onChange={handleChange}
                 placeholder="Contoh: Cristiano Ronaldo"
-                required
-                className="w-full bg-[#0a0a0a] border border-[#1a1a1a] focus:border-yellow-500 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none"
+                {...register('strPlayer')}
+                className={`w-full bg-[#0a0a0a] border rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none transition-colors ${
+                  errors.strPlayer
+                    ? 'border-rose-500/80 focus:border-rose-500'
+                    : 'border-[#1a1a1a] focus:border-yellow-500'
+                }`}
               />
+              {errors.strPlayer && (
+                <p className="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1 font-medium">
+                  <AlertCircle size={12} />
+                  <span>{errors.strPlayer.message}</span>
+                </p>
+              )}
             </div>
 
             <div>
@@ -120,13 +103,20 @@ export function CustomPlayerModal({ isOpen, onClose }) {
               </label>
               <input
                 type="text"
-                name="strTeam"
-                value={formData.strTeam}
-                onChange={handleChange}
                 placeholder="Contoh: Real Madrid"
-                required
-                className="w-full bg-[#0a0a0a] border border-[#1a1a1a] focus:border-yellow-500 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none"
+                {...register('strTeam')}
+                className={`w-full bg-[#0a0a0a] border rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none transition-colors ${
+                  errors.strTeam
+                    ? 'border-rose-500/80 focus:border-rose-500'
+                    : 'border-[#1a1a1a] focus:border-yellow-500'
+                }`}
               />
+              {errors.strTeam && (
+                <p className="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1 font-medium">
+                  <AlertCircle size={12} />
+                  <span>{errors.strTeam.message}</span>
+                </p>
+              )}
             </div>
           </div>
 
@@ -137,9 +127,7 @@ export function CustomPlayerModal({ isOpen, onClose }) {
                 Posisi
               </label>
               <select
-                name="strPosition"
-                value={formData.strPosition}
-                onChange={handleChange}
+                {...register('strPosition')}
                 className="w-full bg-[#0a0a0a] border border-[#1a1a1a] focus:border-yellow-500 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 focus:outline-none cursor-pointer"
               >
                 <option value="Forward">Forward / Striker</option>
@@ -160,12 +148,20 @@ export function CustomPlayerModal({ isOpen, onClose }) {
               </label>
               <input
                 type="text"
-                name="strNumber"
-                value={formData.strNumber}
-                onChange={handleChange}
                 placeholder="Contoh: 7 atau 10"
-                className="w-full bg-[#0a0a0a] border border-[#1a1a1a] focus:border-yellow-500 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none"
+                {...register('strNumber')}
+                className={`w-full bg-[#0a0a0a] border rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none transition-colors ${
+                  errors.strNumber
+                    ? 'border-rose-500/80 focus:border-rose-500'
+                    : 'border-[#1a1a1a] focus:border-yellow-500'
+                }`}
               />
+              {errors.strNumber && (
+                <p className="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1 font-medium">
+                  <AlertCircle size={12} />
+                  <span>{errors.strNumber.message}</span>
+                </p>
+              )}
             </div>
           </div>
 
@@ -177,12 +173,20 @@ export function CustomPlayerModal({ isOpen, onClose }) {
               </label>
               <input
                 type="text"
-                name="strNationality"
-                value={formData.strNationality}
-                onChange={handleChange}
                 placeholder="Contoh: Portugal, Indonesia"
-                className="w-full bg-[#0a0a0a] border border-[#1a1a1a] focus:border-yellow-500 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none"
+                {...register('strNationality')}
+                className={`w-full bg-[#0a0a0a] border rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none transition-colors ${
+                  errors.strNationality
+                    ? 'border-rose-500/80 focus:border-rose-500'
+                    : 'border-[#1a1a1a] focus:border-yellow-500'
+                }`}
               />
+              {errors.strNationality && (
+                <p className="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1 font-medium">
+                  <AlertCircle size={12} />
+                  <span>{errors.strNationality.message}</span>
+                </p>
+              )}
             </div>
 
             <div>
@@ -191,9 +195,7 @@ export function CustomPlayerModal({ isOpen, onClose }) {
               </label>
               <input
                 type="date"
-                name="dateBorn"
-                value={formData.dateBorn}
-                onChange={handleChange}
+                {...register('dateBorn')}
                 className="w-full bg-[#0a0a0a] border border-[#1a1a1a] focus:border-yellow-500 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 focus:outline-none"
               />
             </div>
@@ -205,24 +207,32 @@ export function CustomPlayerModal({ isOpen, onClose }) {
               URL Langsung File Foto / Gambar (Opsional)
             </label>
             <input
-              type="url"
-              name="strThumb"
-              value={formData.strThumb}
-              onChange={handleChange}
+              type="text"
               placeholder="https://example.com/foto-pemain.png (akhiran .jpg, .png, .webp)"
-              className="w-full bg-[#0a0a0a] border border-[#1a1a1a] focus:border-yellow-500 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none"
+              {...register('strThumb')}
+              className={`w-full bg-[#0a0a0a] border rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none transition-colors ${
+                errors.strThumb
+                  ? 'border-rose-500/80 focus:border-rose-500'
+                  : 'border-[#1a1a1a] focus:border-yellow-500'
+              }`}
             />
+            {errors.strThumb && (
+              <p className="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1 font-medium">
+                <AlertCircle size={12} />
+                <span>{errors.strThumb.message}</span>
+              </p>
+            )}
             <p className="text-[11px] text-gray-500 mt-1">
               *Tips: Gunakan link langsung file gambar (*Direct Image URL*). Jangan gunakan link halaman web / artikel.
             </p>
 
             {/* Live Preview if URL provided */}
-            {formData.strThumb.trim() && (
+            {strThumbValue.trim() && (
               <div className="mt-2.5 p-3 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] flex items-center gap-3">
                 <div className="w-12 h-12 rounded-lg bg-[#151515] border border-[#1a1a1a] flex items-center justify-center overflow-hidden flex-shrink-0">
                   {!imageError ? (
                     <img
-                      src={formData.strThumb}
+                      src={strThumbValue}
                       alt="Preview"
                       className="w-full h-full object-contain"
                       onError={() => setImageError(true)}
@@ -252,30 +262,39 @@ export function CustomPlayerModal({ isOpen, onClose }) {
               Catatan / Biografi Singkat
             </label>
             <textarea
-              name="strDescriptionEN"
               rows={3}
-              value={formData.strDescriptionEN}
-              onChange={handleChange}
               placeholder="Tuliskan catatan atau profil singkat tentang pemain ini..."
-              className="w-full bg-[#0a0a0a] border border-[#1a1a1a] focus:border-yellow-500 rounded-xl p-3 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none resize-none"
+              {...register('strDescriptionEN')}
+              className={`w-full bg-[#0a0a0a] border rounded-xl p-3 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none resize-none transition-colors ${
+                errors.strDescriptionEN
+                  ? 'border-rose-500/80 focus:border-rose-500'
+                  : 'border-[#1a1a1a] focus:border-yellow-500'
+              }`}
             />
+            {errors.strDescriptionEN && (
+              <p className="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1 font-medium">
+                <AlertCircle size={12} />
+                <span>{errors.strDescriptionEN.message}</span>
+              </p>
+            )}
           </div>
 
           {/* Footer Submit */}
           <div className="pt-3 border-t border-[#1a1a1a] flex items-center justify-end gap-2.5">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-[#151515] hover:bg-[#151515] border border-[#1a1a1a] text-xs font-semibold text-gray-300 hover:text-white transition-colors cursor-pointer"
+              onClick={handleClose}
+              className="px-4 py-2 rounded-xl bg-[#151515] hover:bg-[#1a1a1a] border border-[#1a1a1a] text-xs font-semibold text-gray-300 hover:text-white transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-semibold text-xs transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
+              disabled={isSubmitting}
+              className="px-5 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-white font-semibold text-xs transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
             >
               <Plus size={15} />
-              Simpan ke Favorit
+              {isSubmitting ? 'Menyimpan...' : 'Simpan ke Favorit'}
             </button>
           </div>
         </form>
