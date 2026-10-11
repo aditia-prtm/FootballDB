@@ -7,15 +7,20 @@ export function FavoritePlayerCard({ player, onRemove, onOpenDetail, loadingDeta
   return (
     <div className="bg-[#151515] border border-[#1a1a1a] hover:border-yellow-500/50 rounded-2xl overflow-hidden shadow-sm transition-all group relative">
       {/* Position and Custom Badges */}
-      <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
-        <Badge variant="yellow" size="xs" className="backdrop-blur-sm">
-          {player.strPosition || 'Pemain'}
-        </Badge>
-        {player.isCustom && (
-          <Badge variant="amber" size="xs" className="backdrop-blur-sm">
-            Kustom
-          </Badge>
-        )}
+      <div className="absolute font-goldman text-xl text-yellow-500 font-semibold top-3 left-3 z-10 flex items-center justify-center gap-1.5">
+        {player.strPosition === "Forward" && `FW`}
+        {player.strPosition === "Centre-Forward" && `CF`}
+        {player.strPosition === "Right Wing" && `RW`}
+        {player.strPosition === "Left Wing" && `LW`}
+        {player.strPosition === "Attacking Midfield" && `CAM`}
+        {player.strPosition === "Central Midfield" && `CM`}
+        {player.strPosition === "Defensive Midfield" && `CDM`}
+        {player.strPosition === "Centre-Back" && `CB`}
+        {player.strPosition === "Full-Back" && `FB`}
+        {player.strPosition === "Wing-Back" && `WB`}
+        {player.strPosition === "Left-Back" && `LB`}
+        {player.strPosition === "Right-Back" && `RB`}
+        {player.strPosition === "Goalkeeper" && `GK`}
       </div>
 
       {/* Remove Favorite Button */}
